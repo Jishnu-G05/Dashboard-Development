@@ -1,0 +1,51 @@
+import dash
+from dash import dcc, html, Input, Output
+import pandas as pd
+import plotly.express as px
+
+# Sample dataset (can be replaced with large or live data)
+df = px.data.gapminder()
+
+# Initialize the Dash app
+app = dash.Dash(__name__)
+app.title = "Analytics Dashboard"
+
+# Layout of the dashboard
+app.layout = html.Div([
+    html.H1("📊 Country Analytics Dashboard", style={'textAlign': 'center'}),
+
+    dcc.Dropdown(
+        id='year-dropdown',
+        options=[{"label": year, "value": year} for year in sorted(df['year'].unique())],
+        value=2007,
+        clearable=False,
+        style={"width": "50%", "margin": "auto"}
+    ),
+
+    dcc.Graph(id='life-exp-vs-gdp'),
+
+    html.Div("Data Source: Gapminder", style={"textAlign": "center", "marginTop": 20})
+])
+
+# Callback to update graph
+@app.callback(
+    Output('life-exp-vs-gdp', 'figure'),
+    Input('year-dropdown', 'value')
+)
+def update_graph(selected_year):
+    filtered_df = df[df['year'] == selected_year]
+    fig = px.scatter(
+        filtered_df,
+        x="gdpPercap",
+        y="lifeExp",
+        size="pop",
+        color="continent",
+        hover_name="country",
+        log_x=True,
+        title=f"Life Expectancy vs GDP per Capita ({selected_year})"
+    )
+    return fig
+
+# Run the server
+if __name__ == '__main__':
+    app.run_server(debug=True)
